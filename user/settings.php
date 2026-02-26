@@ -23,7 +23,7 @@ if (isset($_SESSION['user_id'])) {
     exit();
 }
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_button']) && isset($_POST['password']) && isset($_POST['name']) && isset($_POST['surname']) && isset($_POST['password_repeat'])) {
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_button'])) {
     
     $argument_array = [];
     $param_array = [];
@@ -44,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_button']) && is
         }
 
         $argument_array[] = "first_name";
-        $param_array[] = "\$name";
+        $param_array[] = $name;
     }
 
     if (isset($_POST['surname'])) {
@@ -57,7 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_button']) && is
         }
 
         $argument_array[] = "last_name";
-        $param_array[] = "\$surname";
+        $param_array[] = $surname;
     }
 
     if (isset($_POST['password']) && isset($_POST['password_repeat'])) {
@@ -85,22 +85,27 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_button']) && is
         $hashed_password = password_hash($password, PASSWORD_BCRYPT);
 
         $argument_array[] = "password";
-        $param_array[] = "\$hashed_password";
+        $param_array[] = $hashed_password;
     }
 
-    $hashed_password = password_hash($password, PASSWORD_BCRYPT);
-    $stmt = $db->prepare("INSERT INTO users (first_name, last_name, email, password, is_admin) VALUES (?, ?, ?, ?, 0)");
-    $stmt->bind_param("ssss", $name, $surname, $email, $hashed_password);
-    $stmt->execute();
+    $allowed_columns = ['first_name', 'last_name', 'password'];
 
-    $stmt = $db->prepare("SELECT user_id FROM users WHERE email = ?");
-    $stmt->bind_param("s", $email);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $_SESSION['user_id'] = $result->fetch_assoc()['user_id'];
+    for ($i = 0; $i < count($argument_array); $i++) {
 
-    $_SESSION['goodAlert'] = "Account created successfully!";
-    header("Location: ..\home\index.php");
+        if (!in_array($argument_array[$i], $allowed_columns)) {
+            continue;
+        }
+
+        $column = $argument_array[$i];
+        $value = $param_array[$i];
+
+        $stmt = $db->prepare("UPDATE users SET $column = ? WHERE user_id = ?");
+        $stmt->bind_param("si", $value, $user['user_id']);
+        $stmt->execute();
+    }
+    
+    $_SESSION['goodAlert'] = "Changes saved successfully!";
+    header("Location: ..\user\settings.php");
     exit();
 }
 
