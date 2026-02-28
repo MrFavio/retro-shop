@@ -1,5 +1,5 @@
 INSERT INTO users (first_name, last_name, email, password, is_admin) VALUES
-('Admin', 'Admin', 'admin@adm.com', '$2y$10$69n7O0JnaqJo.fkMbVL3SuNnN4Ky0m329zmGE4b8SVdrmtgJ6Mjai', FALSE),
+('Admin', 'Admin', 'admin@adm.com', '$2y$10$69n7O0JnaqJo.fkMbVL3SuNnN4Ky0m329zmGE4b8SVdrmtgJ6Mjai', TRUE),
 ('Jan', 'Kowalski', 'jan.kowalski@example.com', '$2y$10$69n7O0JnaqJo.fkMbVL3SuNnN4Ky0m329zmGE4b8SVdrmtgJ6Mjai', FALSE),
 ('Anna', 'Nowak', 'anna.nowak@example.com', '$2y$10$69n7O0JnaqJo.fkMbVL3SuNnN4Ky0m329zmGE4b8SVdrmtgJ6Mjai', TRUE);
 

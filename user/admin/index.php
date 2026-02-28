@@ -23,7 +23,7 @@ if (isset($_SESSION['user_id'])) {
     exit();
 }
 
-if ($user['is_admin'] != true) {
+if (!$user['is_admin']) {
     $_SESSION['badAlert'] = "Something went wrong!";
     header("Location: ..\home\index.php");
     exit();
@@ -122,7 +122,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_button'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Retro Shop - Settings</title>
+    <title>Retro Shop - Admin Panel</title>
     <link rel="stylesheet" href="..\php\styles.css">
 </head>
 <body>
@@ -155,6 +155,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_button'])) {
 
                         <div class="hidden" id="profile_overlay">
                             <a href="../php/logout.php" class="logout_link">Logout</a>
+                            <?php if ($user['is_admin']): ?>
+                                <br><a href="../user/admin/index.php" class="admin_link">Admin Panel</a>
+                            <?php endif; ?>
                         </div>
                     </li>
                 <?php endif; ?>
@@ -167,39 +170,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_button'])) {
         <form method="post" class="quantity_control column">
             <div class="cart_item grid_auto">
     
-                <div id="bigger_user_profile" class="grid_user_row_span">
-                    <?php
-                        $firstname = htmlspecialchars($user['first_name']);
-                        $surname = htmlspecialchars($user['last_name']);
-                        $initials = strtoupper($firstname[0] . $surname[0]);
-                        echo $initials;
-                    ?>
-                </div>
-
-                <div>
-                    <label for="name">First Name</label>
-                    <input type="text" name="name" id="name" value="<?php echo htmlspecialchars($user['last_name']); ?>">
-                </div>
-
-                <div>
-                    <label for="surname">Last Name</label>
-                    <input type="text" name="surname" id="surname" value="<?php echo htmlspecialchars($user['last_name']); ?>">
-                </div><br>
-
-                <h2 class="grid_user_col_span text_center">Zmień hasło</h2><br>
-
-                <div>
-                    <label for="password">New Password</label>
-                    <input type="password" name="password" id="password" placeholder="password123!" minlength="4">
-                </div>
-
-                <div>
-                    <label for="password_repeat">Password Repeat</label>
-                    <input type="password" name="password_repeat" id="password_repeat" placeholder="password123!" minlength="4">
-                </div>
-            </div>
-            <div class="cart_footer">
-                <button type="submit" name="submit_button">Zapisz zmiany</button>
+                
             </div>
         </form>
     </section>

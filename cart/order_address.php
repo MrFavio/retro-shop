@@ -96,6 +96,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['country']) && isset($
 
                         <div class="hidden" id="profile_overlay">
                             <a href="../php/logout.php" class="logout_link">Logout</a>
+                            <?php if ($user['is_admin']): ?>
+                                <br><a href="../user/admin/index.php" class="admin_link">Admin Panel</a>
+                            <?php endif; ?>
                         </div>
                     </li>
                 <?php endif; ?>

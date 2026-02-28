@@ -53,6 +53,9 @@ if (isset($_SESSION['user_id'])) {
 
                         <div class="hidden" id="profile_overlay">
                             <a href="../php/logout.php" class="logout_link">Logout</a>
+                            <?php if ($user['is_admin']): ?>
+                                <br><a href="../user/admin/index.php" class="admin_link">Admin Panel</a>
+                            <?php endif; ?>
                         </div>
                     </li>
                 <?php endif; ?>
