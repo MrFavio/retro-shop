@@ -1,7 +1,7 @@
 <?php
 
 session_start();
-require_once '..\php\db.php';
+require_once '..\..\php\db.php';
 
 $user = null;
 
@@ -19,15 +19,19 @@ if (isset($_SESSION['user_id'])) {
     }
 } else {
     $_SESSION['badAlert'] = "You have to be logged in!";
-    header("Location: ..\login\index.php");
+    header("Location: ..\..\login\index.php");
     exit();
 }
 
 if (!$user['is_admin']) {
     $_SESSION['badAlert'] = "Something went wrong!";
-    header("Location: ..\home\index.php");
+    header("Location: ..\..\home\index.php");
     exit();
 }
+
+$stmt = $db->prepare("SELECT products.*, best_products.product_id as b_product_id FROM products left JOIN best_products on products.product_id = best_products.product_id;");
+$stmt->execute();
+$product_result = $stmt->get_result();
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_button'])) {
     
@@ -123,7 +127,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_button'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Retro Shop - Admin Panel</title>
-    <link rel="stylesheet" href="..\php\styles.css">
+    <link rel="stylesheet" href="..\..\php\styles.css">
 </head>
 <body>
     <?php if (isset($_SESSION['goodAlert'])): ?>
@@ -138,10 +142,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_button'])) {
         </a>
         <nav>
             <ul>
-                <li><a href="..\home\index.php">Strona główna</a></li>
-                <li><a href="..\products\index.php">Produkty</a></li>
-                <li><a href="..\contact\index.php">Kontakt</a></li>
-                <li><a href="..\cart\index.php">Koszyk</a></li>
+                <li><a href="..\..\home\index.php">Strona główna</a></li>
+                <li><a href="..\..\products\index.php">Produkty</a></li>
+                <li><a href="..\..\contact\index.php">Kontakt</a></li>
+                <li><a href="..\..\cart\index.php">Koszyk</a></li>
                 <?php if ($user) : ?>
                     <li>
                         <button id="user_profile" onclick="toggleProfileOverlay()">
@@ -154,9 +158,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_button'])) {
                         </button>
 
                         <div class="hidden" id="profile_overlay">
-                            <a href="../php/logout.php" class="logout_link">Logout</a>
+                            <a href="..\..\php\logout.php" class="logout_link">Logout</a>
                             <?php if ($user['is_admin']): ?>
-                                <br><a href="../user/admin/index.php" class="admin_link">Admin Panel</a>
+                                <br><a href="..\..\user\admin\index.php" class="admin_link">Admin Panel</a>
                             <?php endif; ?>
                         </div>
                     </li>
@@ -170,6 +174,49 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_button'])) {
         <form method="post" class="quantity_control column">
             <div class="cart_item grid_auto">
     
+                <table>
+                    <tr>
+                        <th>ID Produktu</th><th>Cena</th><th>Nazwa</th><th>Opis</th><th>Popularne produkty</th><th>Dostępność</th>
+                    </tr>
+                    <?php
+                    while ($product = $product_result->fetch_assoc()) {
+                        ?>
+                        <tr>
+                            <td><span><?php echo htmlspecialchars($product['product_id']); ?></span></td>
+                            <td><input type="text" value="<?php echo htmlspecialchars($product['price']); ?>" required></td>
+                            <td><input type="text" value="<?php echo htmlspecialchars($product['title']); ?>" required></td>
+                            <td><input type="text" value="<?php echo htmlspecialchars($product['description']); ?>" required></td>
+                            <td>
+                                <?php
+                                    if ($product['b_product_id']) {
+                                        ?>
+                                        <input type="checkbox" name="" id="" checked>
+                                        <?php
+                                    } else {
+                                        ?>
+                                        <input type="checkbox" name="" id="">
+                                        <?php
+                                    }
+                                ?>
+                            </td>
+                            <td>
+                                <?php
+                                    if ($product['in_stock']) {
+                                        ?>
+                                        <input type="checkbox" name="" id="" checked>
+                                        <?php
+                                    } else {
+                                        ?>
+                                        <input type="checkbox" name="" id="">
+                                        <?php
+                                    }
+                                ?>
+                            </td>
+                        </tr>
+                        <?php
+                    }
+                    ?>
+                </table>
                 
             </div>
         </form>
