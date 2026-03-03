@@ -33,89 +33,36 @@ $stmt = $db->prepare("SELECT products.*, best_products.product_id as b_product_i
 $stmt->execute();
 $product_result = $stmt->get_result();
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_button'])) {
-    
-    $argument_array = [];
-    $param_array = [];
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_products'])) {
 
-    if ((isset($_POST['password']) && !isset($_POST['password_repeat'])) || (!isset($_POST['password']) && isset($_POST['password_repeat']))) {
-        $_SESSION['badAlert'] = "Both fields must be filled in!";
-        header("Location: ..\user\settings.php");
-        exit();
+    if (isset($_POST['products'])) {
+
+        foreach ($_POST['products'] as $product_id => $data) {
+
+            $price = $data['price'];
+            $title = $data['title'];
+            $description = $data['description'];
+            $in_stock = isset($data['in_stock']) ? 1 : 0;
+            $best = isset($data['best']) ? 1 : 0;
+
+            $stmt = $db->prepare("UPDATE products SET price=?, title=?, description=?, in_stock=? WHERE product_id=?");
+            $stmt->bind_param("dssii", $price, $title, $description, $in_stock, $product_id);
+            $stmt->execute();
+
+            if ($best) {
+                $stmt = $db->prepare("INSERT IGNORE INTO best_products (product_id) VALUES (?)");
+                $stmt->bind_param("i", $product_id);
+                $stmt->execute();
+            } else {
+                $stmt = $db->prepare("DELETE FROM best_products WHERE product_id=?");
+                $stmt->bind_param("i", $product_id);
+                $stmt->execute();
+            }
+        }
     }
 
-    if (isset($_POST['name'])) {
-        $name = $_POST['name'];
-
-        if (empty($name)) {
-            $_SESSION['badAlert'] = "Fields cannot be empty!";
-            header("Location: ..\user\settings.php");
-            exit();
-        }
-
-        $argument_array[] = "first_name";
-        $param_array[] = $name;
-    }
-
-    if (isset($_POST['surname'])) {
-        $surname = $_POST['surname'];
-
-        if (empty($surname)) {
-            $_SESSION['badAlert'] = "Fields cannot be empty!";
-            header("Location: ..\user\settings.php");
-            exit();
-        }
-
-        $argument_array[] = "last_name";
-        $param_array[] = $surname;
-    }
-
-    if (isset($_POST['password']) && isset($_POST['password_repeat'])) {
-        $password = $_POST['password'];
-        $password_repeat = $_POST['password_repeat'];
-
-        if (empty($password) || empty($password_repeat)) {
-            $_SESSION['badAlert'] = "Fields cannot be empty!";
-            header("Location: ..\user\settings.php");
-            exit();
-        }
-
-        if (strlen($password) < 4) {
-            $_SESSION['badAlert'] = "Password is too short!";
-            header("Location: ..\user\settings.php");
-            exit();
-        }
-
-        if ($password !== $password_repeat) {
-            $_SESSION['badAlert'] = "Passwords do not match!";
-            header("Location: ..\user\settings.php");
-            exit();
-        }
-
-        $hashed_password = password_hash($password, PASSWORD_BCRYPT);
-
-        $argument_array[] = "password";
-        $param_array[] = $hashed_password;
-    }
-
-    $allowed_columns = ['first_name', 'last_name', 'password'];
-
-    for ($i = 0; $i < count($argument_array); $i++) {
-
-        if (!in_array($argument_array[$i], $allowed_columns)) {
-            continue;
-        }
-
-        $column = $argument_array[$i];
-        $value = $param_array[$i];
-
-        $stmt = $db->prepare("UPDATE users SET $column = ? WHERE user_id = ?");
-        $stmt->bind_param("si", $value, $user['user_id']);
-        $stmt->execute();
-    }
-    
-    $_SESSION['goodAlert'] = "Changes saved successfully!";
-    header("Location: ..\user\settings.php");
+    $_SESSION['goodAlert'] = "Produkty zaktualizowane!";
+    header("Location: " . $_SERVER['PHP_SELF']);
     exit();
 }
 
@@ -182,42 +129,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_button'])) {
                     while ($product = $product_result->fetch_assoc()) {
                         ?>
                         <tr>
-                            <td><span><?php echo htmlspecialchars($product['product_id']); ?></span></td>
-                            <td><input type="text" value="<?php echo htmlspecialchars($product['price']); ?>" required></td>
-                            <td><input type="text" value="<?php echo htmlspecialchars($product['title']); ?>" required></td>
-                            <td><input type="text" value="<?php echo htmlspecialchars($product['description']); ?>" required></td>
-                            <td>
-                                <?php
-                                    if ($product['b_product_id']) {
-                                        ?>
-                                        <input type="checkbox" name="" id="" checked>
-                                        <?php
-                                    } else {
-                                        ?>
-                                        <input type="checkbox" name="" id="">
-                                        <?php
-                                    }
-                                ?>
-                            </td>
-                            <td>
-                                <?php
-                                    if ($product['in_stock']) {
-                                        ?>
-                                        <input type="checkbox" name="" id="" checked>
-                                        <?php
-                                    } else {
-                                        ?>
-                                        <input type="checkbox" name="" id="">
-                                        <?php
-                                    }
-                                ?>
-                            </td>
+                            <td><span><?php echo htmlspecialchars($product['product_id']); ?></span><input type="hidden" name="products[<?php echo htmlspecialchars($product['product_id']); ?>][id]"value="<?php echo htmlspecialchars($product['product_id']); ?>"></td>
+                            <td><input type="text" name="products[<?php echo htmlspecialchars($product['product_id']); ?>][price]" value="<?php echo htmlspecialchars($product['price']); ?>" required></td>
+                            <td><input type="text" name="products[<?php echo htmlspecialchars($product['product_id']); ?>][title]" value="<?php echo htmlspecialchars($product['title']); ?>" required></td>
+                            <td><input type="text" name="products[<?php echo htmlspecialchars($product['product_id']); ?>][description]" value="<?php echo htmlspecialchars($product['description']); ?>" required></td>
+                            <td><input type="checkbox" name="products[<?php echo htmlspecialchars($product['product_id']); ?>][best]" value="1" <?php echo $product['b_product_id'] ? "checked" : ""; ?>></td>
+                            <td><input type="checkbox" name="products[<?php echo htmlspecialchars($product['product_id']); ?>][in_stock]" value="1" <?php echo $product['in_stock'] ? "checked" : ""; ?>></td>
                         </tr>
                         <?php
                     }
                     ?>
                 </table>
-                
+                <button type="submit" name="update_products">Zapisz zmiany</button>
             </div>
         </form>
     </section>
@@ -250,3 +173,4 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_button'])) {
     </script>
 </body>
 </html>
+
