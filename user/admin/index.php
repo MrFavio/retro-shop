@@ -62,7 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_products'])) {
     }
 
     $_SESSION['goodAlert'] = "Produkty zaktualizowane!";
-    header("Location: " . $_SERVER['PHP_SELF']);
+    header("Location: ..\..\user\admin\index.php");
     exit();
 }
 
@@ -173,4 +173,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_products'])) {
     </script>
 </body>
 </html>
+
 
